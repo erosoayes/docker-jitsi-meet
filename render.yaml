@@ -1,4 +1,3 @@
-# render.yaml
 services:
   - type: web
     name: clario-jitsi
@@ -10,7 +9,3 @@ services:
     envVars:
       - key: PUBLIC_URL
         value: https://clario-jitsi.onrender.com
-    buildFilter:
-      paths:
-        - Dockerfile
-        - nginx.conf

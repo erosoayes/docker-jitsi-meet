@@ -1,40 +1,21 @@
-# Use a base image with Node.js for building
-FROM node:18-alpine as builder
-
-# Install dependencies
-RUN apk add --no-cache \
-    git \
-    python3 \
-    make \
-    g++ \
-    curl
-
-# Clone and build Jitsi Meet - FIXED: Use master branch and specific version
-WORKDIR /app
-RUN git clone https://github.com/jitsi/jitsi-meet.git . \
-    && git checkout master
-
-# Install dependencies and build
-RUN npm install \
-    && npm run build
-
-# Production stage
+# -------------------------------
+# Working Jitsi Meet Frontend Image
+# -------------------------------
 FROM nginx:alpine
 
-# Install curl for health checks
+# Install curl
 RUN apk add --no-cache curl
 
-# Copy built files to nginx
-COPY --from=builder /app /usr/share/nginx/html
+# Download a stable prebuilt version of Jitsi Meet
+WORKDIR /usr/share/nginx/html
+RUN curl -L https://download.jitsi.org/jitsi-meet/src/jitsi-meet-5765-1.tar.bz2 -o jitsi.tar.bz2 \
+    && tar -xjf jitsi.tar.bz2 --strip-components=1 \
+    && rm jitsi.tar.bz2
 
-# Copy nginx configuration for Jitsi
+# Copy nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose port
+# Expose port 80
 EXPOSE 80
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost/ || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]
