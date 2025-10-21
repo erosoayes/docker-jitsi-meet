@@ -1,20 +1,37 @@
-# Use the official Jitsi Web image
-FROM jitsi/web:latest
+# Use a base image with Node.js for building
+FROM node:18-alpine as builder
 
-# Install any additional packages if needed
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# Install dependencies
+RUN apk add --no-cache \
+    git \
+    python3 \
+    make \
+    g++ \
+    curl
 
-# Copy custom configuration
-COPY .env /defaults/
+# Clone and build Jitsi Meet
+WORKDIR /app
+RUN git clone https://github.com/jitsi/jitsi-meet.git . \
+    && git checkout stable
 
-# Expose ports
+# Install dependencies and build
+RUN npm install \
+    && npm run build
+
+# Production stage
+FROM nginx:alpine
+
+# Copy built files to nginx
+COPY --from=builder /app /usr/share/nginx/html
+
+# Copy nginx configuration for Jitsi
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port
 EXPOSE 80
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost/ || exit 1
 
-# Start the service
-CMD ["/init"]
+CMD ["nginx", "-g", "daemon off;"]
