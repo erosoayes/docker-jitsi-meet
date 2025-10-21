@@ -1,16 +1,15 @@
 FROM nginx:alpine
 
-RUN apk add --no-cache curl
+RUN apk add --no-cache git
 
 WORKDIR /usr/share/nginx/html
 
-# Download latest prebuilt Jitsi Meet frontend
-RUN curl -L https://download.jitsi.org/jitsi-meet/latest.tar.bz2 -o jitsi.tar.bz2 \
-    && tar -xjf jitsi.tar.bz2 --strip-components=1 \
-    && rm jitsi.tar.bz2
+# Clone official Jitsi Meet repo
+RUN git clone https://github.com/jitsi/jitsi-meet.git . && rm -rf .git
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
+
 
