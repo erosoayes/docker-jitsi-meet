@@ -12,10 +12,9 @@ services:
         value: 0
       - key: ENABLE_LETSENCRYPT
         value: 0
+      - key: PUBLIC_URL
+        value: https://clario-jitsi.onrender.com
       - key: JWT_APP_ID
         value: your_app_id_here
       - key: JWT_APP_SECRET
         value: your_secret_here
-      - key: PUBLIC_URL
-        value: https://clario-jitsi.onrender.com
-
