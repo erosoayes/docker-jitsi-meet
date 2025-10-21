@@ -1,20 +1,26 @@
+# render.yaml
 services:
   - type: web
     name: clario-jitsi
     env: docker
-    dockerComposeFilePath: ./docker-compose.yml
     plan: starter
-    autoDeploy: false
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    autoDeploy: true
     envVars:
+      - key: PUBLIC_URL
+        value: https://clario-jitsi.onrender.com
       - key: ENABLE_AUTH
         value: 1
       - key: ENABLE_GUESTS
-        value: 0
+        value: 1
       - key: ENABLE_LETSENCRYPT
         value: 0
-      - key: PUBLIC_URL
-        value: https://clario-jitsi.onrender.com
       - key: JWT_APP_ID
-        value: your_app_id_here
+        value: clario-meet
       - key: JWT_APP_SECRET
-        value: your_secret_here
+        generateValue: true
+    buildFilter:
+      paths:
+        - Dockerfile
+        - .env
