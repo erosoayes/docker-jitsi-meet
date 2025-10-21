@@ -1,29 +1,17 @@
-FROM node:18-bullseye
+FROM nginx:alpine
 
-WORKDIR /usr/src/app
+RUN apk add --no-cache git
 
-RUN apt-get update && apt-get install -y \
-    curl \
-    tar \
-    git \
-    make \
-    bzip2 \
-    && rm -rf /var/lib/apt/lists/*
+WORKDIR /usr/share/nginx/html
 
-ENV JITSI_VERSION=stable-10532
+# Clone Jitsi Meet into a temporary folder, then move contents
+RUN git clone https://github.com/jitsi/jitsi-meet.git /tmp/jitsi-meet \
+    && rm -rf ./* \
+    && mv /tmp/jitsi-meet/* . \
+    && mv /tmp/jitsi-meet/.* . 2>/dev/null || true \
+    && rm -rf /tmp/jitsi-meet
 
-RUN echo "Downloading Jitsi Meet version ${JITSI_VERSION}" && \
-    curl -fSL https://github.com/jitsi/jitsi-meet/archive/refs/tags/${JITSI_VERSION}.tar.gz -o jitsi.tar.gz && \
-    tar -xzf jitsi.tar.gz --strip-components=1 && \
-    rm jitsi.tar.gz
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-RUN npm install
-
-ENV JITSI_APP_ID=your_app_id_here
-ENV JITSI_APP_SECRET=your_secret_here
-ENV NODE_ENV=production
-
-RUN npm run build
-
-EXPOSE 3000
-CMD ["npm", "start"]
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
