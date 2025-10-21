@@ -1,20 +1,28 @@
+# Stage 1: Build Jitsi Meet
+FROM node:18-alpine as builder
+
+RUN apk add --no-cache git bash
+
+WORKDIR /app
+
+# Clone source
+RUN git clone https://github.com/jitsi/jitsi-meet.git .
+
+# Install dependencies and build
+RUN npm install && make
+
+# Stage 2: Serve with Nginx
 FROM nginx:alpine
 
-RUN apk add --no-cache git
+# Copy built files from builder
+COPY --from=builder /app /usr/share/nginx/html
 
-WORKDIR /usr/share/nginx/html
-
-# Clone Jitsi Meet into a temporary folder, then move contents
-RUN git clone https://github.com/jitsi/jitsi-meet.git /tmp/jitsi-meet \
-    && rm -rf ./* \
-    && mv /tmp/jitsi-meet/* . \
-    && mv /tmp/jitsi-meet/.* . 2>/dev/null || true \
-    && rm -rf /tmp/jitsi-meet
-
+# Copy your custom nginx.conf if needed
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
+
 
 
 
