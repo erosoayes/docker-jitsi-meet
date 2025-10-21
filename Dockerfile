@@ -1,25 +1,22 @@
-# Stage 1: Build Jitsi Meet
-FROM node:18-alpine AS builder
-
-# Install necessary build tools
-RUN apk add --no-cache git bash make g++ autoconf automake libtool
-
-WORKDIR /app
-
-# Clone Jitsi Meet repository
-RUN git clone https://github.com/jitsi/jitsi-meet.git .
-
-# Install dependencies and build
-RUN npm install && make
-
-# Stage 2: Serve with Nginx
+# Use lightweight Nginx image
 FROM nginx:alpine
 
-# Copy built Jitsi files from the builder stage
-COPY --from=builder /app /usr/share/nginx/html
+# Set working directory
+WORKDIR /usr/share/nginx/html
 
-# Optional: custom Nginx config
+# Install curl to fetch prebuilt Jitsi Meet
+RUN apk add --no-cache curl
+
+# Download the latest *stable prebuilt* Jitsi Meet release
+RUN curl -L https://github.com/jitsi/jitsi-meet/archive/refs/tags/stable-8719.tar.gz -o jitsi.tar.gz \
+    && tar -xzf jitsi.tar.gz --strip-components=1 \
+    && rm jitsi.tar.gz
+
+# Optional: your custom nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# Expose port 80 for web access
 EXPOSE 80
+
+# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
