@@ -1,16 +1,49 @@
-FROM nginx:alpine
+# ------------------------------
+# ✅ Base Image
+# ------------------------------
+FROM node:18-bullseye
 
-WORKDIR /usr/share/nginx/html
+# ------------------------------
+# ✅ Set working directory
+# ------------------------------
+WORKDIR /usr/src/app
 
-RUN apk add --no-cache curl tar
+# ------------------------------
+# ✅ Install dependencies
+# ------------------------------
+RUN apt-get update && apt-get install -y \
+    curl \
+    bzip2 \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
-# Download from official Jitsi CDN instead of GitHub
-RUN curl -L https://download.jitsi.org/jitsi-meet/stable/jitsi-meet_8719.tar.bz2 -o jitsi.tar.bz2 \
-    && tar -xjf jitsi.tar.bz2 --strip-components=1 \
-    && rm jitsi.tar.bz2
+# ------------------------------
+# ✅ Download the latest stable Jitsi Meet release
+# (Automatically fetches the latest version tag)
+# ------------------------------
+RUN LATEST_VERSION=$(curl -s https://download.jitsi.org/jitsi-meet/releases/stable.txt) && \
+    echo "Downloading version: $LATEST_VERSION" && \
+    curl -L https://github.com/jitsi/jitsi-meet/archive/refs/tags/${LATEST_VERSION}.tar.gz -o jitsi.tar.gz && \
+    tar -xzf jitsi.tar.gz --strip-components=1 && \
+    rm jitsi.tar.gz
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# ------------------------------
+# ✅ Install NPM dependencies
+# ------------------------------
+RUN npm install
 
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# ------------------------------
+# ✅ Build Jitsi Meet (with env variables)
+# ------------------------------
+ENV JITSI_APP_ID=your_app_id_here
+ENV JITSI_APP_SECRET=your_secret_here
+ENV NODE_ENV=production
 
+RUN npm run build
+
+# ------------------------------
+# ✅ Expose port & start server
+# ------------------------------
+EXPOSE 3000
+
+CMD ["npm", "start"]
