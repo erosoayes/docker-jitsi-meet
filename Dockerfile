@@ -9,10 +9,10 @@ RUN apk add --no-cache \
     g++ \
     curl
 
-# Clone and build Jitsi Meet
+# Clone and build Jitsi Meet - FIXED: Use master branch and specific version
 WORKDIR /app
 RUN git clone https://github.com/jitsi/jitsi-meet.git . \
-    && git checkout stable
+    && git checkout master
 
 # Install dependencies and build
 RUN npm install \
@@ -20,6 +20,9 @@ RUN npm install \
 
 # Production stage
 FROM nginx:alpine
+
+# Install curl for health checks
+RUN apk add --no-cache curl
 
 # Copy built files to nginx
 COPY --from=builder /app /usr/share/nginx/html
