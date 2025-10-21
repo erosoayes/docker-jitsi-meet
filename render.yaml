@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: jitsi-meet
+    env: docker
+    plan: free
+    dockerfilePath: Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: PUBLIC_URL
+        value: https://jitsi-meet.onrender.com
+      - key: ENABLE_AUTH
+        value: 1
+      - key: ENABLE_GUESTS
+        value: 1
+      - key: JWT_APP_ID
+        value: clario-meet
+      - key: JWT_APP_SECRET
+        value: your_super_secret
