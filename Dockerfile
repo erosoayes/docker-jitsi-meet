@@ -1,22 +1,16 @@
-# Use lightweight Nginx image
 FROM nginx:alpine
 
-# Set working directory
 WORKDIR /usr/share/nginx/html
 
-# Install curl to fetch prebuilt Jitsi Meet
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl tar
 
-# Download the latest *stable prebuilt* Jitsi Meet release
-RUN curl -L https://github.com/jitsi/jitsi-meet/archive/refs/tags/stable-8719.tar.gz -o jitsi.tar.gz \
-    && tar -xzf jitsi.tar.gz --strip-components=1 \
-    && rm jitsi.tar.gz
+# Download from official Jitsi CDN instead of GitHub
+RUN curl -L https://download.jitsi.org/jitsi-meet/stable/jitsi-meet_8719.tar.bz2 -o jitsi.tar.bz2 \
+    && tar -xjf jitsi.tar.bz2 --strip-components=1 \
+    && rm jitsi.tar.bz2
 
-# Optional: your custom nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose port 80 for web access
 EXPOSE 80
-
-# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
+
