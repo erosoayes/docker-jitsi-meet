@@ -1,18 +1,18 @@
 FROM node:18-alpine as build
 
-# Install dependencies for building
+# Install required tools for Jitsi build
 RUN apk add --no-cache git python3 make g++ bash
 
 WORKDIR /app
 
 # Clone Jitsi Meet
-RUN git clone https://github.com/jitsi/jitsi-meet.git . 
+RUN git clone https://github.com/jitsi/jitsi-meet.git .
 
 # Install dependencies
 RUN npm install
 
-# Build the project (this creates css/, libs/, etc.)
-RUN npm run build
+# Build Jitsi Meet
+RUN make
 
 # -------------------
 # Stage 2 - Serve with Nginx
